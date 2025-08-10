@@ -1,11 +1,9 @@
 package com.cortex.task.repository
 
 import org.neo4j.driver.AuthTokens
-import org.neo4j.driver.EagerResult
 import org.neo4j.driver.GraphDatabase
 import org.neo4j.driver.QueryConfig
-import org.neo4j.driver.Record
-import org.neo4j.driver.summary.ResultSummary
+import org.neo4j.driver.types.Node
 import java.time.ZoneOffset
 
 class TaskRepository(password: String) {
@@ -89,11 +87,7 @@ class TaskRepository(password: String) {
             .execute()
     }
 
-    fun warmingUp() {
-        driver.executableQuery("CREATE (:Task)")
-    }
-
-    fun tasks() =
+    fun tasks(): List<Node> =
         driver.executableQuery(
             """
                 MATCH (t:Task)
@@ -106,7 +100,6 @@ class TaskRepository(password: String) {
             .map {
                 it.get("t")
                     .asNode()
-                    .toTask()
             }
 }
 
