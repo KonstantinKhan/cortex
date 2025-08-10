@@ -15,10 +15,3 @@ data class Task(
     val createdAt: Instant,
     val status: TaskStatus
 )
-
-//fun Node.toTask(): Task = Task(
-//    id = get("id").asString(),
-//    title = get("title").asString(),
-//    description = get("description").asString(),
-//    createdAt = Instant.from(get("created_at").asZonedDateTime())
-//)
