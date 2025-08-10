@@ -1,11 +1,8 @@
 package com.cortex.task.repository
 
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.time.Duration
 import java.time.Instant
-import kotlin.system.measureTimeMillis
 
 fun main(args: Array<String>): Unit = runBlocking {
     val repository = TaskRepository(args[0])
