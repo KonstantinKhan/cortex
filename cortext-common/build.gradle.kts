@@ -11,6 +11,7 @@ repositories {
 }
 
 dependencies {
+    implementation(libs.neo4j.driver)
     implementation(libs.kotlin.serialization)
     testImplementation(kotlin("test"))
 }
