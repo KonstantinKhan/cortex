@@ -16,3 +16,4 @@ include("cortex-ktor-app")
 include("neo4j-provider")
 
 include("cortext-common")
+include("cortext-mapping")
