@@ -5,7 +5,7 @@ import org.neo4j.driver.types.Node
 
 interface ITaskRepository {
     fun tasks(): List<Node>
-    fun createTask(task: Task)
+    fun createTask(task: Task): List<Node>
     fun createSubtask(parentId: String, child: Task)
     fun asyncCreateTasksBatch(tasks: List<Task>)
 }
