@@ -17,11 +17,15 @@ dependencies {
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.ktor.server.netty)
+<<<<<<< HEAD
     implementation(libs.ktor.cors)
     implementation(libs.logback.classic)
 
     implementation(projects.cortexTaskRepository)
 
+=======
+    implementation(libs.logback.classic)
+>>>>>>> origin/main
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlin.test.junit)
 }
