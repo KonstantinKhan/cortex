@@ -12,7 +12,8 @@ data class Task(
     val description: String,
     @Serializable(with = InstantSerializer::class)
     @SerialName("created_at")
-    val createdAt: Instant
+    val createdAt: Instant,
+    val status: TaskStatus
 )
 
 //fun Node.toTask(): Task = Task(
