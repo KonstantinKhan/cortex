@@ -15,7 +15,7 @@ class TaskRepository(password: String) : ITaskRepository {
         AuthTokens.basic("neo4j", password)
     )
 
-    override fun createTask(task: Task) {
+    override fun createTask(task: Task): List<Node> {
         val query = $$"""
             MERGE (t:Task {
                 id: $id,
@@ -24,6 +24,7 @@ class TaskRepository(password: String) : ITaskRepository {
                 created_at: $created_at,
                 status: $status
             })
+            RETURN t
         """.trimIndent()
         val parameters = mapOf(
             "id" to task.id,
@@ -32,11 +33,16 @@ class TaskRepository(password: String) : ITaskRepository {
             "created_at" to task.createdAt.atZone(ZoneOffset.UTC),
             "status" to task.status.toString()
         )
-        try {
+        return try {
             driver
                 .executableQuery(query)
                 .withParameters(parameters)
                 .execute()
+                .records()
+                .map {
+                    it.get("t")
+                        .asNode()
+                }
         } catch (e: Exception) {
             throw RuntimeException("Failed to create task", e)
         }

@@ -15,6 +15,7 @@ fun Application.module(
     install(CORS) {
         allowHost("localhost:3000")
         allowMethod(HttpMethod.Get)
+        allowMethod(HttpMethod.Post)
         allowHeader(HttpHeaders.ContentType)
     }
     configureHTTP()
