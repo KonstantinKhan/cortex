@@ -15,6 +15,8 @@ dependencies {
     implementation(libs.kotlin.coroutines)
     implementation(libs.ktor.serialization.kotlinx.json)
 
+    implementation(projects.cortextCommon)
+
     testImplementation(kotlin("test"))
 }
 

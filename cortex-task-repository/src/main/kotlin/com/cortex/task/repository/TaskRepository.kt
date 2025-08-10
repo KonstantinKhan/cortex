@@ -1,18 +1,20 @@
 package com.cortex.task.repository
 
+import com.cortext.common.TaskRepository
+import com.cortext.common.models.Task
 import org.neo4j.driver.AuthTokens
 import org.neo4j.driver.GraphDatabase
 import org.neo4j.driver.QueryConfig
 import org.neo4j.driver.types.Node
 import java.time.ZoneOffset
 
-class TaskRepository(password: String) {
+class TaskRepository(password: String) : TaskRepository {
     private val driver = GraphDatabase.driver(
         "bolt://localhost:7687",
         AuthTokens.basic("neo4j", password)
     )
 
-    fun createTask(task: Task) {
+    override fun createTask(task: Task) {
         val query = $$"""
             MERGE (t:Task {
                 id: $id,
@@ -37,7 +39,7 @@ class TaskRepository(password: String) {
         }
     }
 
-    fun createSubtask(parent: Task, child: Task) {
+    override fun createSubtask(parentId: String, child: Task) {
         val query = $$"""
             MATCH (parent:Task {id: $parentId})
             CREATE (child:Task {id: $childId, 
@@ -47,7 +49,7 @@ class TaskRepository(password: String) {
             CREATE (child)-[:CHILD_OF]->(parent)
         """.trimIndent()
         val parameters = mapOf(
-            "parentId" to parent.id,
+            "parentId" to parentId,
             "childId" to child.id,
             "title" to child.title,
             "description" to child.description,
@@ -63,7 +65,7 @@ class TaskRepository(password: String) {
         }
     }
 
-    fun asyncCreateTasksBatch(tasks: List<Task>) {
+    override fun asyncCreateTasksBatch(tasks: List<Task>) {
         driver.executableQuery(
             $$"""
             UNWIND $tasks AS task
@@ -87,7 +89,7 @@ class TaskRepository(password: String) {
             .execute()
     }
 
-    fun tasks(): List<Node> =
+    override fun tasks(): List<Node> =
         driver.executableQuery(
             """
                 MATCH (t:Task)
