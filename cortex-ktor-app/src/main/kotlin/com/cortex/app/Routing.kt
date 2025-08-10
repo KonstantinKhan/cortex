@@ -1,29 +1,22 @@
 package com.cortex.app
 
-<<<<<<< HEAD
-import com.cortex.task.repository.TaskRepository
+import com.cortex.app.config.AppKtorConfig
+import com.cortex.mapping.toTask
 import io.ktor.server.application.*
-=======
-import io.ktor.serialization.kotlinx.json.*
-import io.ktor.server.application.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.defaultheaders.*
->>>>>>> origin/main
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Application.configureRouting() {
+fun Application.configureRouting(config: AppKtorConfig) {
     routing {
         get("/") {
             call.respondText("Hello World!")
         }
-<<<<<<< HEAD
         post("/create") {
 
         }
         get("/tasks") {
+            val tasks = config.taskRepository.tasks().map { it.toTask() }
+            call.respond(tasks)
         }
-=======
->>>>>>> origin/main
     }
 }

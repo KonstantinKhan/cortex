@@ -1,15 +1,18 @@
 package com.cortext.common.models
 
 enum class TaskStatus(private val value: String) {
-    EMPTY("empty"),
+    UNKNOWN("unknown"),
     INBOX("inbox"),
-    PLANNING("planning"),
+    PLANNED("planned"),
+    ACTIVE("active"),
+    BLOCKED("blocked"),
     DONE("done"),
-    PAUSE("pause");
+    CANCELLED("cancelled"),
+    PAUSED("paused");
 
     companion object {
         fun fromValue(value: String): TaskStatus {
-            return entries.firstOrNull { it.value == value } ?: EMPTY
+            return entries.firstOrNull { it.value == value } ?: UNKNOWN
         }
     }
 
