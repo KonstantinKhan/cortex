@@ -14,6 +14,9 @@ fun Application.configureRouting(config: AppKtorConfig) {
         post("/createTask") {
             call.createTask(config)
         }
+        post("/createSubTask"){
+            call.createSubTask(config)
+        }
         get("/tasks") {
             val tasks = config.taskRepository.tasks().map { it.toTask() }
             call.respond(tasks)

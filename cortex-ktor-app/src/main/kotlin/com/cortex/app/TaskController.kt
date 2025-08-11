@@ -4,13 +4,13 @@ import com.cortex.app.config.AppKtorConfig
 import com.cortex.mapping.toTask
 import com.cortext.common.models.Task
 import com.cortext.common.models.TaskStatus
+import com.cortext.common.requests.SubTaskRequest
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import java.time.Instant
 
 suspend fun ApplicationCall.createTask(config: AppKtorConfig) {
-    println("start")
     var request: Task =
         Task(id = "", title = "", description = "", createdAt = Instant.now(), status = TaskStatus.UNKNOWN)
     try {
@@ -18,8 +18,20 @@ suspend fun ApplicationCall.createTask(config: AppKtorConfig) {
     } catch (e: Exception) {
         println(e.message)
     }
-
-    println("request: $request")
     val response = config.taskRepository.createTask(request).map { it.toTask() }
     respond(response)
+}
+
+suspend fun ApplicationCall.createSubTask(config: AppKtorConfig) = try {
+    val request = receive<SubTaskRequest>()
+    val response = config.taskRepository
+        .createSubtask(
+            SubTaskRequest(
+                request.parentId,
+                request.child
+            )
+        ).toTask()
+    respond(response)
+} catch (e: Exception) {
+    throw RuntimeException(e.message)
 }

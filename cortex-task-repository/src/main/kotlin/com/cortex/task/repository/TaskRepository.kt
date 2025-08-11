@@ -3,6 +3,7 @@ package com.cortex.task.repository
 import com.cortext.common.ITaskRepository
 import com.cortext.common.models.Task
 import com.cortext.common.models.TaskStatus
+import com.cortext.common.requests.SubTaskRequest
 import org.neo4j.driver.AuthTokens
 import org.neo4j.driver.GraphDatabase
 import org.neo4j.driver.QueryConfig
@@ -48,7 +49,7 @@ class TaskRepository(password: String) : ITaskRepository {
         }
     }
 
-    override fun createSubtask(parentId: String, child: Task) {
+    override fun createSubtask(request: SubTaskRequest): Node {
         val query = $$"""
             MATCH (parent:Task {id: $parentId})
             CREATE (child:Task {
@@ -60,21 +61,27 @@ class TaskRepository(password: String) : ITaskRepository {
                 })
             SET parent.status = $parentStatus
             CREATE (child)-[:CHILD_OF]->(parent)
+            RETURN child
         """.trimIndent()
-        val parameters = mapOf(
-            "parentId" to parentId,
-            "childId" to child.id,
-            "title" to child.title,
-            "description" to child.description,
-            "created_at" to child.createdAt.atZone(ZoneOffset.UTC),
-            "status" to child.status.toString(),
-            "parentStatus" to TaskStatus.BLOCKED.toString()
-        )
-        try {
+        val parameters = with(request) {
+            mapOf(
+                "parentId" to parentId,
+                "childId" to child.id,
+                "title" to child.title,
+                "description" to child.description,
+                "created_at" to child.createdAt.atZone(ZoneOffset.UTC),
+                "status" to child.status.toString(),
+                "parentStatus" to TaskStatus.BLOCKED.toString()
+            )
+        }
+        return try {
             driver.executableQuery(query)
                 .withParameters(parameters)
                 .withConfig(QueryConfig.builder().withDatabase("neo4j").build())
                 .execute()
+                .records().map {
+                    it.get("child").asNode()
+                }.first()
         } catch (e: Exception) {
             throw RuntimeException("Failed to create subtask", e)
         }
