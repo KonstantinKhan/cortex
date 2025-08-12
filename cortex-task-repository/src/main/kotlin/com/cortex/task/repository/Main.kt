@@ -1,6 +1,6 @@
 package com.cortex.task.repository
 
-import com.cortext.common.models.Task
+import com.cortext.common.models.TaskModel
 import com.cortext.common.models.TaskStatus
 import kotlinx.coroutines.runBlocking
 import java.time.Duration
@@ -8,30 +8,7 @@ import java.time.Instant
 
 fun main(args: Array<String>): Unit = runBlocking {
     val repository = TaskRepository(args[0])
-    val task1 = Task(
-        id = "0001",
-        title = "Task 1",
-        description = "Some doing",
-        createdAt = Instant.now()
-            .minus(Duration.ofDays(1)),
-        status = TaskStatus.INBOX
 
-    )
-    val task2 = Task(
-        id = "0002",
-        title = "Task 2",
-        description = "Some doing yet",
-        createdAt = Instant.now(),
-        status = TaskStatus.INBOX
-
-    )
-    val task3 = Task(
-        id = "0002",
-        title = "Task 2",
-        description = "Some doing yet",
-        createdAt = Instant.now().plus(Duration.ofHours(2)),
-        status = TaskStatus.INBOX
-    )
 
     val records = repository.tasks()
 //    repository.createTask(

@@ -12,7 +12,6 @@ repositories {
 
 dependencies {
     implementation(libs.kotlin.serialization)
-
     testImplementation(kotlin("test"))
 }
 

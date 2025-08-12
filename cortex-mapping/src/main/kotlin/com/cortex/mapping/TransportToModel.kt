@@ -1,0 +1,16 @@
+package com.cortex.mapping
+
+import com.cortex.transport.models.TaskDTO
+import com.cortext.common.models.TaskModel
+import com.cortext.common.models.TaskStatus
+import kotlin.time.ExperimentalTime
+
+@OptIn(ExperimentalTime::class)
+fun TaskDTO.toModel() = TaskModel(
+    id = id,
+    label = label,
+    title = title,
+    description = description ?: "",
+    createdAt = createAt,
+    status = TaskStatus.fromValue(status)
+)

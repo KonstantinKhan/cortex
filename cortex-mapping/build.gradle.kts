@@ -10,8 +10,9 @@ repositories {
 }
 
 dependencies {
-    implementation(libs.neo4j.driver)
-    implementation(projects.cortextCommon)
+    implementation(projects.cortexCommon)
+    implementation(projects.cortexTransport)
+
     testImplementation(kotlin("test"))
 }
 

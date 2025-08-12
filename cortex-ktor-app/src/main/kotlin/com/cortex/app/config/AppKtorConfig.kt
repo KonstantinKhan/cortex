@@ -1,7 +1,7 @@
 package com.cortex.app.config
 
 import com.cortex.task.repository.TaskRepository
-import com.cortext.common.ITaskRepository
+import com.cortext.common.repository.ITaskRepository
 import io.ktor.server.application.ApplicationEnvironment
 
 class AppKtorConfig(
