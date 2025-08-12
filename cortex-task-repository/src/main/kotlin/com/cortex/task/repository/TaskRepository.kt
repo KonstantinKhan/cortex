@@ -6,11 +6,9 @@ import com.cortext.common.models.TaskStatus
 import com.cortext.common.repository.DbTaskRequest
 import com.cortext.common.repository.DbTaskResponse
 import com.cortext.common.repository.DbTasksResponse
-import com.cortext.common.requests.SubTaskRequest
 import org.neo4j.driver.AuthTokens
 import org.neo4j.driver.GraphDatabase
 import org.neo4j.driver.QueryConfig
-import org.neo4j.driver.types.Node
 import java.time.ZoneOffset
 import kotlin.time.ExperimentalTime
 import kotlin.time.toJavaInstant
@@ -35,7 +33,7 @@ class TaskRepository(password: String) : ITaskRepository {
         """.trimIndent()
         val parameters = with(request) {
             mapOf(
-                "id" to task.id,
+                "id" to task.id.asString(),
                 "title" to task.title,
                 "description" to task.description,
                 "created_at" to task.createdAt.toJavaInstant().atZone(ZoneOffset.UTC),
@@ -58,11 +56,11 @@ class TaskRepository(password: String) : ITaskRepository {
         return DbTaskResponse(
             success = data.isNotEmpty(),
             result = data.first()
-
         )
     }
 
-    override fun createSubtask(request: SubTaskRequest): Node {
+    @OptIn(ExperimentalTime::class)
+    override fun createSubtask(request: DbTaskRequest): DbTaskResponse {
         val query = $$"""
             MATCH (parent:Task {id: $parentId})
             CREATE (child:Task {
@@ -78,26 +76,30 @@ class TaskRepository(password: String) : ITaskRepository {
         """.trimIndent()
         val parameters = with(request) {
             mapOf(
-                "parentId" to parentId,
-                "childId" to child.id,
-                "title" to child.title,
-                "description" to child.description,
-//                "created_at" to child.createdAt.atZone(ZoneOffset.UTC),
-                "status" to child.status.toString(),
+                "parentId" to request.relatedTaskId.asString(),
+                "childId" to request.task.id.asString(),
+                "title" to request.task.title,
+                "description" to request.task.description,
+                "created_at" to request.task.createdAt.toJavaInstant().atZone(ZoneOffset.UTC),
+                "status" to request.task.status.toString(),
                 "parentStatus" to TaskStatus.BLOCKED.toString()
             )
         }
-        return try {
+        val data = try {
             driver.executableQuery(query)
                 .withParameters(parameters)
                 .withConfig(QueryConfig.builder().withDatabase("neo4j").build())
                 .execute()
                 .records().map {
-                    it.get("child").asNode()
-                }.first()
+                    it.get("child").asNode().toTask()
+                }
         } catch (e: Exception) {
             throw RuntimeException("Failed to create subtask", e)
         }
+        return DbTaskResponse(
+            success = data.isNotEmpty(),
+            result = data.first()
+        )
     }
 
     override fun asyncCreateTasksBatch(tasks: List<TaskModel>) {
