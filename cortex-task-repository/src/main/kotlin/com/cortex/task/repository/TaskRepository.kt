@@ -1,14 +1,19 @@
 package com.cortex.task.repository
 
-import com.cortext.common.ITaskRepository
-import com.cortext.common.models.Task
+import com.cortext.common.repository.ITaskRepository
+import com.cortext.common.models.TaskModel
 import com.cortext.common.models.TaskStatus
+import com.cortext.common.repository.DbTaskRequest
+import com.cortext.common.repository.DbTaskResponse
+import com.cortext.common.repository.DbTasksResponse
 import com.cortext.common.requests.SubTaskRequest
 import org.neo4j.driver.AuthTokens
 import org.neo4j.driver.GraphDatabase
 import org.neo4j.driver.QueryConfig
 import org.neo4j.driver.types.Node
 import java.time.ZoneOffset
+import kotlin.time.ExperimentalTime
+import kotlin.time.toJavaInstant
 
 class TaskRepository(password: String) : ITaskRepository {
     private val driver = GraphDatabase.driver(
@@ -16,7 +21,8 @@ class TaskRepository(password: String) : ITaskRepository {
         AuthTokens.basic("neo4j", password)
     )
 
-    override fun createTask(task: Task): List<Node> {
+    @OptIn(ExperimentalTime::class)
+    override fun createTask(request: DbTaskRequest): DbTaskResponse {
         val query = $$"""
             MERGE (t:Task {
                 id: $id,
@@ -27,14 +33,16 @@ class TaskRepository(password: String) : ITaskRepository {
             })
             RETURN t
         """.trimIndent()
-        val parameters = mapOf(
-            "id" to task.id,
-            "title" to task.title,
-            "description" to task.description,
-            "created_at" to task.createdAt.atZone(ZoneOffset.UTC),
-            "status" to task.status.toString()
-        )
-        return try {
+        val parameters = with(request) {
+            mapOf(
+                "id" to task.id,
+                "title" to task.title,
+                "description" to task.description,
+                "created_at" to task.createdAt.toJavaInstant().atZone(ZoneOffset.UTC),
+                "status" to task.status.toString()
+            )
+        }
+        val data = try {
             driver
                 .executableQuery(query)
                 .withParameters(parameters)
@@ -42,11 +50,16 @@ class TaskRepository(password: String) : ITaskRepository {
                 .records()
                 .map {
                     it.get("t")
-                        .asNode()
+                        .asNode().toTask()
                 }
         } catch (e: Exception) {
             throw RuntimeException("Failed to create task", e)
         }
+        return DbTaskResponse(
+            success = data.isNotEmpty(),
+            result = data.first()
+
+        )
     }
 
     override fun createSubtask(request: SubTaskRequest): Node {
@@ -69,7 +82,7 @@ class TaskRepository(password: String) : ITaskRepository {
                 "childId" to child.id,
                 "title" to child.title,
                 "description" to child.description,
-                "created_at" to child.createdAt.atZone(ZoneOffset.UTC),
+//                "created_at" to child.createdAt.atZone(ZoneOffset.UTC),
                 "status" to child.status.toString(),
                 "parentStatus" to TaskStatus.BLOCKED.toString()
             )
@@ -87,7 +100,7 @@ class TaskRepository(password: String) : ITaskRepository {
         }
     }
 
-    override fun asyncCreateTasksBatch(tasks: List<Task>) {
+    override fun asyncCreateTasksBatch(tasks: List<TaskModel>) {
         driver.executableQuery(
             $$"""
             UNWIND $tasks AS task
@@ -104,15 +117,15 @@ class TaskRepository(password: String) : ITaskRepository {
                 "id" to task.id,
                 "title" to task.title,
                 "description" to task.description,
-                "created_at" to task.createdAt.toString()
+//                "created_at" to task.createdAt.toString()
             )
         }))
             .withConfig(QueryConfig.builder().withDatabase("neo4j").build())
             .execute()
     }
 
-    override fun tasks(): List<Node> =
-        driver.executableQuery(
+    override fun tasks(): DbTasksResponse {
+        val data = driver.executableQuery(
             """
                 MATCH (t:Task)
                 RETURN t
@@ -123,8 +136,13 @@ class TaskRepository(password: String) : ITaskRepository {
             .records()
             .map {
                 it.get("t")
-                    .asNode()
+                    .asNode().toTask()
             }
+        return DbTasksResponse(
+            success = data.isNotEmpty(),
+            result = data
+        )
+    }
 }
 
 

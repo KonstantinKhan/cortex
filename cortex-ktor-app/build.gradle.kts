@@ -21,10 +21,11 @@ dependencies {
     implementation(libs.logback.classic)
     implementation(libs.neo4j.driver)
 
-    implementation(projects.cortextCommon)
+    implementation(projects.cortexCommon)
     implementation(projects.cortexTaskServiceModule)
     implementation(projects.cortexTaskRepository)
-    implementation(projects.cortextMapping)
+    implementation(projects.cortexMapping)
+    implementation(projects.cortexTransport)
 
     implementation(libs.logback.classic)
     testImplementation(libs.ktor.server.test.host)

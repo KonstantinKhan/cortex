@@ -1,25 +1,37 @@
 package com.cortex.app
 
 import com.cortex.app.config.AppKtorConfig
-import com.cortex.mapping.toTask
-import com.cortext.common.models.Task
-import com.cortext.common.models.TaskStatus
+import com.cortex.mapping.toDTO
+import com.cortex.mapping.toModel
+import com.cortex.task.repository.toTask
+import com.cortex.transport.models.Node
+import com.cortex.transport.models.TaskDTO
+import com.cortext.common.repository.DbTaskRequest
 import com.cortext.common.requests.SubTaskRequest
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
-import java.time.Instant
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalTime::class)
 suspend fun ApplicationCall.createTask(config: AppKtorConfig) {
-    var request: Task =
-        Task(id = "", title = "", description = "", createdAt = Instant.now(), status = TaskStatus.UNKNOWN)
-    try {
-        request = receive<Task>() as Task
+//    println(receive<String>())
+    val request: TaskDTO = try {
+        receive<TaskDTO>()
     } catch (e: Exception) {
-        println(e.message)
+        println(e)
+        TaskDTO(
+            id = "",
+            label = "",
+            title = "",
+            description = "",
+            createAt = Clock.System.now(),
+            status = "",
+        )
     }
-    val response = config.taskRepository.createTask(request).map { it.toTask() }
-    respond(response)
+    val response = config.taskRepository.createTask(DbTaskRequest(request.toModel()))
+    respond(response.result.toDTO())
 }
 
 suspend fun ApplicationCall.createSubTask(config: AppKtorConfig) = try {
