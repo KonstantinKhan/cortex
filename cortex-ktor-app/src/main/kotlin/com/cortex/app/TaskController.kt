@@ -3,47 +3,37 @@ package com.cortex.app
 import com.cortex.app.config.AppKtorConfig
 import com.cortex.mapping.toDTO
 import com.cortex.mapping.toModel
-import com.cortex.task.repository.toTask
-import com.cortex.transport.models.Node
-import com.cortex.transport.models.TaskDTO
+import com.cortex.transport.models.TaskRequest
+import com.cortext.common.models.TaskId
 import com.cortext.common.repository.DbTaskRequest
-import com.cortext.common.requests.SubTaskRequest
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
-import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
 suspend fun ApplicationCall.createTask(config: AppKtorConfig) {
-//    println(receive<String>())
-    val request: TaskDTO = try {
-        receive<TaskDTO>()
+    val request: TaskRequest = try {
+        receive<TaskRequest>()
     } catch (e: Exception) {
-        println(e)
-        TaskDTO(
-            id = "",
-            label = "",
-            title = "",
-            description = "",
-            createAt = Clock.System.now(),
-            status = "",
-        )
+        throw RuntimeException(e)
     }
-    val response = config.taskRepository.createTask(DbTaskRequest(request.toModel()))
+    val response = config.taskRepository.createTask(DbTaskRequest(request.task.toModel()))
     respond(response.result.toDTO())
 }
 
-suspend fun ApplicationCall.createSubTask(config: AppKtorConfig) = try {
-    val request = receive<SubTaskRequest>()
+suspend fun ApplicationCall.createSubTask(config: AppKtorConfig) {
+    val request = try {
+        receive<TaskRequest>()
+    } catch (e: Exception) {
+        throw RuntimeException(e)
+    }
     val response = config.taskRepository
         .createSubtask(
-            SubTaskRequest(
-                request.parentId,
-                request.child
+            DbTaskRequest(
+                request.task.toModel(),
+                TaskId(request.relatedTaskId ?: ""),
             )
-        ).toTask()
-    respond(response)
-} catch (e: Exception) {
-    throw RuntimeException(e.message)
+        )
+    respond(response.result.toDTO())
 }

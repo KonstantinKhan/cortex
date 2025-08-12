@@ -6,7 +6,7 @@ import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
 fun TaskModel.toDTO() = TaskDTO(
-    id = id,
+    id = id.asString(),
     label = label,
     title = title,
     description = description,
