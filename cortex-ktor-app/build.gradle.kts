@@ -19,7 +19,6 @@ dependencies {
     implementation(libs.ktor.server.netty)
     implementation(libs.ktor.cors)
     implementation(libs.logback.classic)
-    implementation(libs.neo4j.driver)
 
     implementation(projects.cortexCommon)
     implementation(projects.cortexTaskServiceModule)
