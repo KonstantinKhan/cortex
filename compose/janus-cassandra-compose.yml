@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  janusgraph:
+    image: janusgraph/janusgraph:latest
+    container_name: jce-janusgraph
+    environment:
+      JANUS_PROPS_TEMPLATE: cql-es
+      janusgraph.storage.hostname: jce-cassandra
+      janusgraph.index.search.hostname: jce-elastic
+    ports:
+      - "8182:8182"
+    networks:
+      - jce-network
+    volumes:
+      - janusgraph-data:/opt/janusgraph/data
+      - janusgraph-logs:/opt/janusgraph/logs
+    depends_on:
+      - cassandra
+      - elasticsearch
+    healthcheck:
+      test: ["CMD", "bin/gremlin.sh", "-e", "scripts/init.groovy"]
+      interval: 10s
+      timeout: 30s
+      retries: 3
+
+  cassandra:
+    image: cassandra:4.0.18
+    container_name: jce-cassandra
+    ports:
+      - "9042:9042"
+      - "9160:9160"
+    networks:
+      - jce-network
+    volumes:
+      - cassandra-data:/var/lib/cassandra
+    healthcheck:
+      test: ["CMD", "nodetool", "status"]
+      interval: 10s
+      timeout: 30s
+      retries: 6
+
+  elasticsearch:
+    image: elasticsearch:8.18.4
+    container_name: jce-elastic
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "http.host=0.0.0.0"
+      - "network.host=0.0.0.0"
+      - "transport.host=127.0.0.1"
+      - "cluster.name=docker-cluster"
+      - "xpack.security.enabled=false"
+      - "discovery.type=single-node"
+    ports:
+      - "9200:9200"
+    networks:
+      - jce-network
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      interval: 10s
+      timeout: 30s
+      retries: 6
+
+  janusgraph-visualizer:
+    image: janusgraph/janusgraph-visualizer:1.0.4
+    container_name: jce-visualizer
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    networks:
+      - jce-network
+    depends_on:
+      - janusgraph
+    environment:
+      - GREMLIN_HOST=jce-janusgraph
+    healthcheck:
+      test: ["CMD", "nc", "-v", "-w", "2", "localhost", "3001"]
+      interval: 10s
+      retries: 3
+
+networks:
+  jce-network:
+volumes:
+  # Основные данные Cassandra - самое важное для сохранения графа
+  cassandra-data:
+    driver: local
+  # Индексы Elasticsearch для быстрого поиска
+  elasticsearch-data:
+    driver: local
+  # Данные и конфигурации JanusGraph
+  janusgraph-data:
+    driver: local
+  # Логи JanusGraph для отладки
+  janusgraph-logs:
+    driver: local
