@@ -10,10 +10,12 @@ import com.cortext.common.repository.DbTasksResponse
 import com.cortext.common.repository.ITaskRepository
 import org.apache.tinkerpop.gremlin.process.traversal.AnonymousTraversalSource.traversal
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource
+import org.apache.tinkerpop.gremlin.structure.Vertex
 import java.util.Date
 import java.util.UUID
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
+import kotlin.time.toJavaInstant
 import kotlin.time.toKotlinInstant
 
 class JanusGraphTaskRepository : ITaskRepository {
@@ -44,8 +46,23 @@ class JanusGraphTaskRepository : ITaskRepository {
         DbTasksResponse(e)
     }
 
-    override fun createTask(request: DbTaskRequest): DbTaskResponse {
-        TODO("Not yet implemented")
+    @OptIn(ExperimentalTime::class)
+    override fun createTask(request: DbTaskRequest): DbTaskResponse = try {
+        with(request.task) {
+            g.addV("Task")
+                .property("uuid", uuid.asString())
+                .property("title", title)
+                .property("description", description)
+                .property("createdAt", Date.from(createdAt.toJavaInstant()))
+                .property("status", status.toString())
+        }.next().let {
+            DbTaskResponse(
+                success = true,
+                result = it.toTaskModel()
+            )
+        }
+    } catch (e: Exception) {
+        DbTaskResponse(e)
     }
 
     override fun createSubtask(request: DbTaskRequest): DbTaskResponse {
@@ -84,3 +101,13 @@ fun Map<Any, Any>.statusProperty(key: String): TaskStatus =
 @OptIn(ExperimentalTime::class)
 fun Map<Any, Any>.dateProperty(key: String): Instant =
     property(key, validate = { it is Date }) { (it as Date).toInstant().toKotlinInstant() }
+
+@OptIn(ExperimentalTime::class)
+fun Vertex.toTaskModel() = TaskModel(
+    TaskId(this.value<UUID>("uuid")),
+    label = this.label(),
+    title = this.value("title"),
+    description = this.value("description"),
+    createdAt = this.value<Date>("createdAt").toInstant().toKotlinInstant(),
+    status = TaskStatus.fromValue(this.value("status"))
+)

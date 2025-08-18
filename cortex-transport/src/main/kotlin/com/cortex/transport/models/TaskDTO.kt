@@ -14,9 +14,9 @@ constructor(
     override val description: String?,
     @Serializable(with = InstantSerializer::class)
     @SerialName("created_at")
-    override val createAt: Instant,
+    override val createdAt: Instant,
     @Required
-    override val id: String,
+    override val uuid: String,
     @Required
     override val label: String,
     val status: String

@@ -1,13 +1,10 @@
 package com.cortex.transport.models
 
-import kotlinx.serialization.Required
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 interface Entity {
-    val id: String
+    val uuid: String
     val label: String
 }
 
@@ -16,7 +13,7 @@ interface Node : Entity {
     val description: String?
 
     @OptIn(ExperimentalTime::class)
-    val createAt: Instant
+    val createdAt: Instant
 }
 
 interface Relation : Entity {

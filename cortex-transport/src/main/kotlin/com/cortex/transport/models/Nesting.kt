@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Nesting(
-    override val id: String,
+    override val uuid: String,
     override val label: String
 ): Relation
