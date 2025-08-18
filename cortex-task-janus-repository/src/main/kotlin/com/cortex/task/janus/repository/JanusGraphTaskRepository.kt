@@ -1,5 +1,6 @@
 package com.cortex.task.janus.repository
 
+import com.cortext.common.models.KeyValidationException
 import com.cortext.common.models.TaskId
 import com.cortext.common.models.TaskModel
 import com.cortext.common.models.TaskStatus
@@ -19,8 +20,8 @@ class JanusGraphTaskRepository : ITaskRepository {
     private val g: GraphTraversalSource = traversal().withRemote("conf/remote-graph.properties")
 
     @OptIn(ExperimentalTime::class)
-    override fun tasks(): DbTasksResponse {
-        val result = g.V().hasLabel("Task")
+    override fun tasks(): DbTasksResponse = try {
+        g.V().hasLabel("Task")
             .elementMap<Any>().toList()
             .map { vertex ->
                 TaskModel(
@@ -31,10 +32,16 @@ class JanusGraphTaskRepository : ITaskRepository {
                     createdAt = vertex.dateProperty("createdAt"),
                     status = vertex.statusProperty("status")
                 )
+            }.let {
+                DbTasksResponse(
+                    success = true,
+                    result = it
+                )
             }
-        return DbTasksResponse(
-            success = false, result = result
-        )
+    } catch (e: KeyValidationException) {
+        DbTasksResponse(e)
+    } catch (e: Exception) {
+        DbTasksResponse(e)
     }
 
     override fun createTask(request: DbTaskRequest): DbTaskResponse {
@@ -55,7 +62,7 @@ inline fun <reified T> Map<Any, Any>.property(
     noinline validate: (Any) -> Boolean = { it is T },
     transform: (Any) -> T
 ): T {
-    val value = this[key] ?: throw IllegalArgumentException("Missing key: $key. Available keys: ${this.keys}")
+    val value = this[key] ?: throw KeyValidationException(key, "Missing key: $key. Available keys: ${this.keys}")
     if (!validate(value)) throw IllegalArgumentException(
         "Value for key '$key' is not a ${T::class.simpleName}: $value (${value::class.simpleName})"
     )
