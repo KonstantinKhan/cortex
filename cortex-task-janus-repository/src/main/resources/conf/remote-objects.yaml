@@ -1,4 +1,4 @@
-hosts: [janusgraph]
+hosts: [localhost]
 port: 8182
 serializer: {
   className: org.apache.tinkerpop.gremlin.util.ser.GraphBinaryMessageSerializerV1,

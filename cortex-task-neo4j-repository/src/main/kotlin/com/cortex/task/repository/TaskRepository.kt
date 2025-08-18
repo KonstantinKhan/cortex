@@ -33,7 +33,7 @@ class TaskRepository(password: String) : ITaskRepository {
         """.trimIndent()
         val parameters = with(request) {
             mapOf(
-                "id" to task.id.asString(),
+                "id" to task.uuid.asString(),
                 "title" to task.title,
                 "description" to task.description,
                 "created_at" to task.createdAt.toJavaInstant().atZone(ZoneOffset.UTC),
@@ -77,7 +77,7 @@ class TaskRepository(password: String) : ITaskRepository {
         val parameters = with(request) {
             mapOf(
                 "parentId" to request.relatedTaskId.asString(),
-                "childId" to request.task.id.asString(),
+                "childId" to request.task.uuid.asString(),
                 "title" to request.task.title,
                 "description" to request.task.description,
                 "created_at" to request.task.createdAt.toJavaInstant().atZone(ZoneOffset.UTC),
@@ -116,7 +116,7 @@ class TaskRepository(password: String) : ITaskRepository {
         """
         ).withParameters(mapOf("tasks" to tasks.map { task ->
             mapOf(
-                "id" to task.id,
+                "id" to task.uuid,
                 "title" to task.title,
                 "description" to task.description,
 //                "created_at" to task.createdAt.toString()

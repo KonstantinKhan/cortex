@@ -1,13 +1,13 @@
 package com.cortex.app.config
 
-import com.cortex.task.repository.TaskRepository
+import com.cortex.task.janus.repository.JanusGraphTaskRepository
 import com.cortext.common.repository.ITaskRepository
 import io.ktor.server.application.ApplicationEnvironment
 
 class AppKtorConfig(
-    val taskRepository: ITaskRepository = TaskRepository("")
+    val taskRepository: ITaskRepository = ITaskRepository.NONE
 ) {
     constructor(environment: ApplicationEnvironment) : this(
-        taskRepository = TaskRepository(environment.config.property("ktor.dbpass").getString())
+        taskRepository = JanusGraphTaskRepository()
     )
 }
