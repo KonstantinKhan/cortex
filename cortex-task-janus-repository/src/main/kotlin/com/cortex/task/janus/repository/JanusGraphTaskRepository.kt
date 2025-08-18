@@ -50,39 +50,30 @@ class JanusGraphTaskRepository : ITaskRepository {
     }
 }
 
-fun Map<Any, Any>.stringProperty(key: String): String {
-    val value =
-        this[key] ?: throw IllegalArgumentException("Missing key: $key. Available keys: ${this.keys}")
-    return when (value) {
-        is String -> value
-        else -> throw IllegalArgumentException("Value for key '$key' is not a String: $value (${value::class.simpleName})")
-    }
+inline fun <reified T> Map<Any, Any>.property(
+    key: String,
+    noinline validate: (Any) -> Boolean = { it is T },
+    transform: (Any) -> T
+): T {
+    val value = this[key] ?: throw IllegalArgumentException("Missing key: $key. Available keys: ${this.keys}")
+    if (!validate(value)) throw IllegalArgumentException(
+        "Value for key '$key' is not a ${T::class.simpleName}: $value (${value::class.simpleName})"
+    )
+    return transform(value)
 }
 
-fun Map<Any, Any>.taskIdProperty(key: String): TaskId {
-    val value =
-        this[key] ?: throw IllegalArgumentException("Missing key: $key. Available keys: ${this.keys}")
-    return when (value) {
-        is UUID -> TaskId(value)
-        else -> throw IllegalArgumentException("Value for key '$key' is not a UUID: $value (${value::class.simpleName})")
-    }
-}
+fun Map<Any, Any>.stringProperty(key: String): String =
+    property(key, transform = { it as String })
 
-fun Map<Any, Any>.statusProperty(key: String): TaskStatus {
-    val value =
-        this[key] ?: throw IllegalArgumentException("Missing key: $key. Available keys: ${this.keys}")
-    return when (value) {
-        is String -> TaskStatus.fromValue(value)
-        else -> throw IllegalArgumentException("Value for key '$key' is not a String: $value (${value::class.simpleName})")
-    }
-}
+
+fun Map<Any, Any>.taskIdProperty(key: String): TaskId =
+    property(key, validate = { it is UUID }) { TaskId(it as UUID) }
+
+
+fun Map<Any, Any>.statusProperty(key: String): TaskStatus =
+    property(key, validate = { it is String }) { TaskStatus.fromValue(it as String) }
+
 
 @OptIn(ExperimentalTime::class)
-fun Map<Any, Any>.dateProperty(key: String): Instant {
-    val value =
-        this[key] ?: throw IllegalArgumentException("Missing key: $key. Available keys: ${this.keys}")
-    return when (value) {
-        is Date -> value.toInstant().toKotlinInstant()
-        else -> throw IllegalArgumentException("Value for key '$key' is not a Date: $value (${value::class.simpleName})")
-    }
-}
+fun Map<Any, Any>.dateProperty(key: String): Instant =
+    property(key, validate = { it is Date }) { (it as Date).toInstant().toKotlinInstant() }
