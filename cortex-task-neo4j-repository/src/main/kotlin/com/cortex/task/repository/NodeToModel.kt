@@ -9,7 +9,7 @@ import kotlin.time.toKotlinInstant
 
 @OptIn(ExperimentalTime::class)
 fun Node.toTask(): TaskModel = TaskModel(
-    id = TaskId(get("id").asString()),
+    uuid = TaskId(get("id").asString()),
     label = this.labels().first(),
     title = get("title").asString(),
     description = get("description").asString(),

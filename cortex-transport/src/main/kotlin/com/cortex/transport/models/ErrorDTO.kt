@@ -3,7 +3,7 @@ package com.cortex.transport.models
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Nesting(
-    override val uuid: String,
-    override val label: String
-): Relation
+data class ErrorDTO(
+    val message: String,
+    val field: String = ""
+)

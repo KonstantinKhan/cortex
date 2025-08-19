@@ -22,7 +22,7 @@ dependencies {
 
     implementation(projects.cortexCommon)
     implementation(projects.cortexTaskServiceModule)
-    implementation(projects.cortexTaskRepository)
+    implementation(projects.cortexTaskJanusRepository)
     implementation(projects.cortexMapping)
     implementation(projects.cortexTransport)
 

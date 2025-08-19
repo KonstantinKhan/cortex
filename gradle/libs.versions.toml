@@ -5,6 +5,8 @@ logback = "1.5.13"
 neo4j-driver = "5.28.9"
 coroutines = "1.10.2"
 serialization = "1.9.0"
+gremlin = "3.7.4"
+janusgraph = "1.2.0-20250608-090535.869f248"
 
 [libraries]
 ktor-server-default-headers = { module = "io.ktor:ktor-server-default-headers", version.ref = "ktor" }
@@ -19,6 +21,8 @@ kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version
 neo4j-driver = { module = "org.neo4j.driver:neo4j-java-driver", version.ref = "neo4j-driver" }
 kotlin-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlin-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+gremlin-driver = { module="org.apache.tinkerpop:gremlin-driver", version.ref = "gremlin" }
+janusgraph-driver = { module = "org.janusgraph:janusgraph-driver", version.ref="janusgraph" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
