@@ -8,11 +8,13 @@ import com.cortext.common.repository.DbTaskRequest
 import com.cortext.common.repository.DbTaskResponse
 import com.cortext.common.repository.DbTasksResponse
 import com.cortext.common.repository.ITaskRepository
+import org.apache.tinkerpop.gremlin.driver.exception.ResponseException
 import org.apache.tinkerpop.gremlin.process.traversal.AnonymousTraversalSource.traversal
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource
 import org.apache.tinkerpop.gremlin.structure.Vertex
 import java.util.Date
 import java.util.UUID
+import java.util.concurrent.CompletionException
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 import kotlin.time.toJavaInstant
@@ -65,8 +67,31 @@ class JanusGraphTaskRepository : ITaskRepository {
         DbTaskResponse(e)
     }
 
-    override fun createSubtask(request: DbTaskRequest): DbTaskResponse {
-        TODO("Not yet implemented")
+    @OptIn(ExperimentalTime::class)
+    override fun createSubTask(request: DbTaskRequest): DbTaskResponse = try {
+        with(request) {
+            g.addV("Task")
+                .property("uuid", task.uuid.asString())
+                .property("title", task.title)
+                .property("description", task.description)
+                .property("createdAt", Date.from(task.createdAt.toJavaInstant()))
+                .property("status", task.status.toString())
+                .`as`("child")
+                .V()
+                .has("uuid", relatedTaskId.asString())
+                .`as`("parent")
+                .addE("CHILD_OF")
+                .from("child")
+                .to("parent")
+                .select<Vertex>("child")
+        }.next().let {
+            DbTaskResponse(
+                success = true,
+                result = it.toTaskModel()
+            )
+        }
+    } catch (e: Exception) {
+        DbTaskResponse(e)
     }
 
     override fun asyncCreateTasksBatch(tasks: List<TaskModel>) {

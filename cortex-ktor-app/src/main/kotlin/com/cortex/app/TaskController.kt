@@ -19,27 +19,30 @@ suspend fun ApplicationCall.createTask(config: AppKtorConfig) {
     } catch (e: Exception) {
         throw RuntimeException(e)
     }
-    val task = config.taskRepository.createTask(DbTaskRequest(request.task.toModel()))
-    println("task: $task")
+    val dbResponse = config.taskRepository.createTask(DbTaskRequest(request.task.toModel()))
     val response = TaskResponse(
-        result = listOf(task.result.toDTO()),
-        errors = listOf()
+        result = listOf(dbResponse.result.toDTO()),
+        errors = dbResponse.errors.map { it.toDTO() }
     )
     respond(respond(response))
 }
 
 suspend fun ApplicationCall.createSubTask(config: AppKtorConfig) {
-    val request = try {
+    val request: TaskRequest = try {
         receive<TaskRequest>()
     } catch (e: Exception) {
         throw RuntimeException(e)
     }
-    val response = config.taskRepository
-        .createSubtask(
+    val dbResponse = config.taskRepository
+        .createSubTask(
             DbTaskRequest(
                 request.task.toModel(),
                 TaskId(request.relatedTaskId ?: ""),
             )
         )
-    respond(response.result.toDTO())
+    val response = TaskResponse(
+        result = listOf(dbResponse.result.toDTO()),
+        errors = dbResponse.errors.map { it.toDTO() }
+    )
+    respond(response)
 }

@@ -60,7 +60,7 @@ class TaskRepository(password: String) : ITaskRepository {
     }
 
     @OptIn(ExperimentalTime::class)
-    override fun createSubtask(request: DbTaskRequest): DbTaskResponse {
+    override fun createSubTask(request: DbTaskRequest): DbTaskResponse {
         val query = $$"""
             MATCH (parent:Task {id: $parentId})
             CREATE (child:Task {

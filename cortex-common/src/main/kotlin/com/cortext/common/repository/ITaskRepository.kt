@@ -5,7 +5,7 @@ import com.cortext.common.models.TaskModel
 interface ITaskRepository {
     fun tasks(): DbTasksResponse
     fun createTask(request: DbTaskRequest): DbTaskResponse
-    fun createSubtask(request: DbTaskRequest): DbTaskResponse
+    fun createSubTask(request: DbTaskRequest): DbTaskResponse
     fun asyncCreateTasksBatch(tasks: List<TaskModel>)
 
     object NONE: ITaskRepository {
@@ -17,7 +17,7 @@ interface ITaskRepository {
             TODO("Not yet implemented")
         }
 
-        override fun createSubtask(request: DbTaskRequest): DbTaskResponse {
+        override fun createSubTask(request: DbTaskRequest): DbTaskResponse {
             TODO("Not yet implemented")
         }
 
